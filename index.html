@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Kitchen Ledger</title>
+<meta name="theme-color" content="#46592A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kitchen Ledger">
+<style>
+:root{
+  --cr:#F6F1E7;--pa:#FFFCF6;--ink:#2A241C;--soft:#6B6153;--ln:#DDD3C0;
+  --ol:#46592A;--old:#374621;--mu:#C7962C;--rs:#B14A34;
+  --rsf:#F3DCD5;--olf:#E1E8D3;--blf:#D5E0F3;--bl:#2A4A7A;
+  --inf:#E3F5E8;--ing:#1A6630;--outf:#FFF3E0;--out:#8A4A00;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--cr);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:76px;-webkit-font-smoothing:antialiased;}
+
+header{padding:13px 14px 10px;border-bottom:2px solid var(--ink);background:var(--pa);display:flex;align-items:center;justify-content:space-between;}
+.ey{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ol);font-weight:700;margin-bottom:2px;}
+h1{font-size:20px;font-weight:800;letter-spacing:-.02em;}
+.sub{font-size:10.5px;color:var(--soft);margin-top:2px;}
+#undoBtn{display:none;align-items:center;gap:4px;background:var(--ink);color:var(--pa);border:none;border-radius:8px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;margin-left:8px;}
+
+main{padding:12px 13px 4px;max-width:640px;margin:0 auto;}
+.panel{display:none;}.panel.active{display:block;}
+
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--pa);border-top:2px solid var(--ink);display:flex;z-index:30;}
+nav button{flex:1;background:none;border:none;padding:7px 1px 6px;font-size:9px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;color:var(--soft);cursor:pointer;border-top:3px solid transparent;font-family:inherit;line-height:1.3;}
+nav button.active{color:var(--ol);border-top-color:var(--ol);}
+nav button .ic{display:block;font-size:15px;margin-bottom:1px;}
+
+button{font-family:inherit;}
+.btn{border:none;border-radius:8px;padding:9px 13px;font-weight:700;font-size:13.5px;cursor:pointer;transition:transform .07s;}
+.btn:active{transform:scale(.97);}
+.bp{background:var(--ol);color:var(--pa);}
+.bg{background:transparent;color:var(--ol);border:1.5px solid var(--ol);}
+.bd{background:transparent;color:var(--rs);border:1.5px solid var(--rs);padding:5px 9px;font-size:12px;}
+.bs{padding:7px 11px;font-size:12.5px;}
+.bb{width:100%;margin-top:10px;}
+
+.card{background:var(--pa);border:1.5px solid var(--ln);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.rh{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;}
+.rh h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);font-weight:700;}
+.r2{display:flex;gap:8px;}.r2>*{flex:1;}
+
+.field{margin-bottom:10px;}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+input[type=text],input[type=number],select{width:100%;padding:9px 11px;border:1.5px solid var(--ln);border-radius:8px;background:var(--pa);font-size:14px;color:var(--ink);font-family:inherit;}
+input:focus,select:focus{outline:2px solid var(--ol);outline-offset:1px;}
+
+.sk-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.sk-name{font-weight:700;font-size:15px;}
+.sk-meta{font-size:11.5px;color:var(--soft);margin-top:2px;}
+.sk-qty{font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;text-align:right;min-width:68px;}
+.tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-top:3px;}
+.tag-low{background:var(--rsf);color:var(--rs);}
+.sk-acts{display:flex;gap:6px;margin-top:9px;}
+
+details.rcd summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+details.rcd summary::-webkit-details-marker{display:none;}
+.rt{font-weight:700;font-size:15px;}.rc{font-size:11.5px;color:var(--soft);margin-top:1px;}
+.il{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-top:1px dotted var(--ln);}
+.il span:last-child{color:var(--soft);font-variant-numeric:tabular-nums;}
+
+.brow{display:flex;gap:6px;align-items:flex-end;margin-bottom:8px;}
+.brow select{flex:2;}.brow input[type=number]{flex:1;}
+.bi{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:6px 0;border-top:1px dotted var(--ln);}
+.bi button{background:none;border:none;color:var(--rs);font-size:11px;cursor:pointer;padding:0 4px;}
+
+.ul{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--ln);}
+.ul.bad span:last-child{color:var(--rs);font-weight:700;}
+.ul span:first-child{color:var(--soft);}
+.abox{border-radius:8px;padding:8px 11px;font-size:13px;font-weight:600;margin:8px 0;}
+.ab-w{background:var(--rsf);color:var(--rs);}
+.ab-ok{background:var(--olf);color:var(--old);}
+
+/* P&L mini cards */
+.pl-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px;}
+.pl-mini{background:var(--cr);border:1.5px solid var(--ln);border-radius:8px;padding:8px 6px;text-align:center;}
+.pmn{font-size:17px;font-weight:800;line-height:1.1;margin-bottom:3px;font-variant-numeric:tabular-nums;}
+.pml{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);font-weight:700;}
+.xn-row{display:flex;gap:8px;align-items:flex-end;}
+.xn-row input{flex:1;}
+.xn-row button{flex:0 0 auto;}
+
+/* Log */
+.log-i{font-size:12.5px;padding:7px 0;border-top:1px dotted var(--ln);}
+.log-top{display:flex;justify-content:space-between;gap:6px;align-items:flex-start;}
+.log-sub{font-size:11px;color:var(--soft);margin-top:2px;padding-left:2px;}
+.lt{color:var(--soft);font-size:10.5px;white-space:nowrap;}
+.ltype{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;padding:1px 5px;border-radius:4px;margin-right:4px;}
+.t-sale{background:var(--olf);color:var(--old);}
+.t-staff{background:var(--blf);color:var(--bl);}
+.t-waste{background:var(--rsf);color:var(--rs);}
+.t-inward{background:var(--inf);color:var(--ing);}
+.t-outward{background:var(--outf);color:var(--out);}
+
+/* Dashboard */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px;}
+.stat{background:var(--pa);border:1.5px solid var(--ln);border-radius:10px;padding:11px 13px;}
+.sn{font-size:26px;font-weight:800;margin-bottom:2px;line-height:1;}
+.sl{font-size:10.5px;color:var(--soft);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+.stat.w .sn{color:var(--rs);}
+.stat.g .sn{color:var(--old);}
+.stat.b .sn{color:var(--bl);}
+
+/* Date strip */
+.date-strip{display:flex;align-items:center;justify-content:space-between;background:var(--olf);border:1.5px solid var(--old);border-radius:9px;padding:8px 12px;margin-bottom:10px;}
+.date-strip span{font-size:12.5px;font-weight:700;color:var(--old);}
+.date-strip small{font-size:11px;color:var(--soft);}
+
+/* Export row */
+.exp-row{display:flex;gap:8px;margin-bottom:14px;}
+.exp-row button{flex:1;}
+
+/* History */
+.day-card{background:var(--pa);border:1.5px solid var(--ln);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.day-card summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.day-card summary::-webkit-details-marker{display:none;}
+.day-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+.dbadge{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;}
+
+/* Supplier badge */
+.sup-badge{display:inline-block;font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;margin-right:3px;background:#EEE8DE;color:var(--soft);}
+
+/* Stock category filter tabs */
+.cat-tabs{display:flex;gap:6px;margin-bottom:10px;}
+.cat-tab{flex:1;background:var(--pa);border:1.5px solid var(--ln);border-radius:8px;padding:7px 4px;font-size:11.5px;font-weight:700;color:var(--soft);cursor:pointer;text-align:center;font-family:inherit;transition:all .1s;}
+.cat-tab.active{background:var(--ol);color:var(--pa);border-color:var(--ol);}
+
+/* Searchable recipe picker (sell + recipe BOM) */
+.srch-wrap{position:relative;margin-bottom:10px;}
+.srch-inp{width:100%;padding:9px 11px;border:1.5px solid var(--ln);border-radius:8px;background:var(--pa);font-size:14px;color:var(--ink);font-family:inherit;}
+.srch-inp:focus{outline:2px solid var(--ol);outline-offset:1px;}
+.srch-list{position:absolute;left:0;right:0;top:100%;margin-top:3px;background:var(--pa);border:1.5px solid var(--ol);border-radius:8px;z-index:20;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.13);}
+.srch-list.hidden{display:none;}
+.srch-opt{padding:9px 12px;font-size:13.5px;cursor:pointer;border-bottom:1px solid var(--ln);}
+.srch-opt:last-child{border-bottom:none;}
+.srch-opt:hover,.srch-opt.sel{background:var(--olf);color:var(--old);}
+.srch-opt .opt-sub{font-size:11px;color:var(--soft);margin-top:1px;}
+.srch-selected{background:var(--olf);border:1.5px solid var(--old);border-radius:8px;padding:8px 12px;font-size:13.5px;font-weight:700;color:var(--old);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.srch-selected span{font-size:11px;color:var(--soft);font-weight:400;}
+.srch-clear{background:none;border:none;color:var(--rs);font-size:16px;cursor:pointer;padding:0 2px;font-weight:700;}
+
+.mbk{display:none;position:fixed;inset:0;background:rgba(42,36,28,.45);z-index:40;align-items:flex-end;}
+.mbk.active{display:flex;}
+.modal{background:var(--cr);width:100%;max-height:90vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:18px 16px 26px;border-top:2px solid var(--ink);}
+.modal h3{font-size:17px;margin-bottom:14px;}
+.mc{float:right;background:none;border:none;font-size:20px;color:var(--soft);cursor:pointer;margin:-2px -2px 0 0;}
+.empty{text-align:center;color:var(--soft);font-size:13px;padding:22px 10px;border:1.5px dashed var(--ln);border-radius:10px;}
+.divider{border:none;border-top:1px solid var(--ln);margin:10px 0;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <p class="ey">Manik's Kitchen · Qmin</p>
+    <h1>Kitchen Ledger</h1>
+    <p class="sub" id="headerDate"></p>
+  </div>
+  <button id="undoBtn" onclick="doUndo()">↩ Undo</button>
+</header>
+
+<main>
+
+<!-- DASHBOARD -->
+<section id="t-dash" class="panel active">
+  <div class="rh" style="margin-top:4px"><h2>Today's Summary</h2></div>
+  <div id="dStats" class="stats"></div>
+
+  <div class="rh"><h2>💰 P&amp;L Tracker</h2></div>
+  <div class="card">
+    <div class="field" style="margin-bottom:8px">
+      <label>Today's Revenue — Enter from XnPos (₹)</label>
+      <div class="xn-row">
+        <input type="number" id="xnRevInput" placeholder="e.g. 5000">
+        <button class="btn bp bs" onclick="saveXnRev()">Set</button>
+      </div>
+    </div>
+    <div class="pl-grid">
+      <div class="pl-mini"><div class="pmn" id="plRev" style="color:var(--old)">₹0</div><div class="pml">XnPos Rev</div></div>
+      <div class="pl-mini"><div class="pmn" id="plCost" style="color:var(--rs)">₹0</div><div class="pml">Stock Cost</div></div>
+      <div class="pl-mini"><div class="pmn" id="plNet">₹0</div><div class="pml">Margin</div></div>
+    </div>
+    <div id="plNote" style="font-size:11px;color:var(--soft);margin-top:8px;line-height:1.5">Set item cost per recipe in Menu tab, log sales, then enter today's total revenue above for margin.</div>
+  </div>
+
+  <div class="rh"><h2>📤 Export Data</h2></div>
+  <div class="exp-row">
+    <button class="btn bp" onclick="exportSales()">📊 Sales Report</button>
+    <button class="btn bg" onclick="exportStock()">📦 Stock List</button>
+  </div>
+
+  <div class="rh"><h2>💾 Backup &amp; Restore — do this weekly!</h2></div>
+  <div class="card">
+    <div style="font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:10px">This saves your <b>entire</b> kitchen — stock, recipes, sales history, everything — into one small file. Keep it in WhatsApp "Message Yourself" or Google Drive. If anything ever happens to this app, this file brings everything back exactly as it was.</div>
+    <div class="exp-row">
+      <button class="btn bp" onclick="doBackup()">⬇ Backup Everything</button>
+      <button class="btn bg" onclick="document.getElementById('restoreFile').click()">⬆ Restore Backup</button>
+    </div>
+    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(this.files[0])">
+    <div id="backupMsg"></div>
+  </div>
+
+  <div class="rh"><h2>⚠ Low Stock Alerts</h2></div>
+  <div id="dLow"></div>
+  <div class="rh"><h2>Today's Activity</h2></div>
+  <div class="card" id="dLog"></div>
+  <div class="rh"><h2>📅 Past Days History</h2></div>
+  <div id="dHistory"></div>
+</section>
+
+<!-- STOCK -->
+<section id="t-stock" class="panel">
+  <div class="rh" style="margin-top:4px"><h2>Raw Stock (A→Z)</h2><button class="btn bp bs" onclick="openIM()">+ Add Item</button></div>
+  <div class="cat-tabs">
+    <button class="cat-tab active" id="cat-all" onclick="setCat('all')">📋 All</button>
+    <button class="cat-tab" id="cat-cold" onclick="setCat('cold')">❄️ Cold</button>
+    <button class="cat-tab" id="cat-dry" onclick="setCat('dry')">📦 Dry</button>
+  </div>
+  <input type="text" id="stockSearch" placeholder="🔍 Search ingredients…" oninput="renderStock()" style="margin-bottom:9px">
+  <div id="stockList"></div>
+</section>
+
+<!-- RECIPES -->
+<section id="t-recipes" class="panel">
+  <div class="rh"><h2>Recipes / BOM</h2><button class="btn bp bs" onclick="openRM()">+ New Recipe</button></div>
+  <div id="recipeList"></div>
+</section>
+
+<!-- SELL -->
+<section id="t-sell" class="panel">
+  <div class="rh"><h2>Log Sale / Prep</h2></div>
+  <div class="date-strip">
+    <span id="sellDateLabel">—</span>
+    <small>Resets at midnight</small>
+  </div>
+  <div class="card">
+    <div class="field"><label>Recipe / Menu Item</label>
+      <div id="sellRecWrap">
+        <div class="srch-wrap" id="sellSrchWrap">
+          <input class="srch-inp" id="sellSrchInp" placeholder="🔍 Search menu items…" oninput="filterSellOpts()" onfocus="showSellList()" autocomplete="off">
+          <div class="srch-list hidden" id="sellSrchList"></div>
+        </div>
+        <div id="sellSelectedBox" style="display:none" class="srch-selected">
+          <div id="sellSelectedName">—</div>
+          <button class="srch-clear" onclick="clearSellSel()" title="Change item">✕</button>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>Quantity Sold</label>
+      <input type="number" id="sellQty" value="1" min="1" oninput="renderSellPrev()">
+    </div>
+    <div id="sellPrev"></div>
+    <div id="sellMsg"></div>
+    <button class="btn bp bb" onclick="doSell()">✓ Deduct from Stock</button>
+  </div>
+  <div class="rh"><h2>Today's Sales</h2><span id="todaySaleCount" style="font-size:12px;font-weight:700;color:var(--old)"></span></div>
+  <div class="card" id="sellLog"></div>
+</section>
+
+<!-- STAFF & WASTE -->
+<section id="t-staff" class="panel">
+  <div class="rh"><h2>Staff &amp; Wastage</h2></div>
+  <div class="card">
+    <div class="r2">
+      <div class="field"><label>Entry Type</label>
+        <select id="conType">
+          <option value="staff">Staff Consumption</option>
+          <option value="waste">Dump / Wastage</option>
+        </select>
+      </div>
+      <div class="field"><label>Ingredient</label><select id="conIng"></select></div>
+    </div>
+    <div class="r2">
+      <div class="field"><label>Quantity</label><input type="number" id="conQty" min="0.01" placeholder="0"></div>
+      <div class="field"><label>Note (optional)</label><input type="text" id="conNote" placeholder="e.g. expired"></div>
+    </div>
+    <button class="btn bp bb" onclick="doConsume()">Log &amp; Deduct</button>
+    <div id="conMsg"></div>
+  </div>
+  <div class="rh"><h2>Today's Staff &amp; Wastage</h2></div>
+  <div class="card" id="staffLog"></div>
+</section>
+
+<!-- INWARD / OUTWARD -->
+<section id="t-inward" class="panel">
+  <div class="rh"><h2>Stock Movement</h2></div>
+  <div class="card">
+    <div class="r2">
+      <div class="field"><label>Type</label>
+        <select id="mvType">
+          <option value="inward">↑ Stock Inward</option>
+          <option value="outward">↓ Stock Outward</option>
+        </select>
+      </div>
+      <div class="field"><label>Ingredient</label><select id="mvIng"></select></div>
+    </div>
+    <div class="field"><label>Quantity</label><input type="number" id="mvQty" min="0.01" placeholder="0"></div>
+    <div class="r2">
+      <div class="field"><label>Supplier</label>
+        <select id="mvSupplier">
+          <option value="Bigbasket">🛒 Bigbasket (Dry)</option>
+          <option value="Sedna Horeca">❄️ Sedna Horeca (Cold)</option>
+          <option value="WYN">🥖 WYN (Bread)</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Note / Batch (optional)</label><input type="text" id="mvNote" placeholder="Invoice ref, batch…"></div>
+    </div>
+    <button class="btn bp bb" onclick="doMove()">Confirm Movement</button>
+    <div id="mvMsg"></div>
+  </div>
+  <div class="rh"><h2>Today's Movements</h2></div>
+  <div class="card" id="mvLog"></div>
+</section>
+
+</main>
+
+<nav>
+  <button class="tb active" id="tb-dash" onclick="tab('dash')"><span class="ic">📊</span>Dash</button>
+  <button class="tb" id="tb-stock" onclick="tab('stock')"><span class="ic">📦</span>Stock</button>
+  <button class="tb" id="tb-recipes" onclick="tab('recipes')"><span class="ic">🍽</span>Menu</button>
+  <button class="tb" id="tb-sell" onclick="tab('sell')"><span class="ic">💸</span>Sell</button>
+  <button class="tb" id="tb-staff" onclick="tab('staff')"><span class="ic">👤</span>Staff</button>
+  <button class="tb" id="tb-inward" onclick="tab('inward')"><span class="ic">↕</span>Inward</button>
+</nav>
+
+<!-- Ingredient Modal -->
+<div class="mbk" id="iMod">
+  <div class="modal">
+    <button class="mc" onclick="closeMod('iMod')">✕</button>
+    <h3 id="iMTitle">Add Stock Item</h3>
+    <input type="hidden" id="iMId">
+    <div class="field"><label>Name</label><input type="text" id="iMName" placeholder="e.g. Bread Slice"></div>
+    <div class="field"><label>Storage Type</label>
+      <select id="iMCat">
+        <option value="dry">📦 Dry Storage</option>
+        <option value="cold">❄️ Cold Storage</option>
+      </select>
+    </div>
+    <div class="r2">
+      <div class="field"><label>Unit</label><input type="text" id="iMUnit" placeholder="pcs / g / ml"></div>
+      <div class="field"><label>Current Qty</label><input type="number" id="iMQty" placeholder="0"></div>
+    </div>
+    <div class="field"><label>Low Stock Alert Below</label><input type="number" id="iMLow" placeholder="e.g. 10 (optional)"></div>
+    <button class="btn bp bb" onclick="saveIng()">Save Item</button>
+  </div>
+</div>
+
+<!-- Recipe Modal -->
+<div class="mbk" id="rMod">
+  <div class="modal">
+    <button class="mc" onclick="closeMod('rMod')">✕</button>
+    <h3 id="rMTitle">New Recipe</h3>
+    <input type="hidden" id="rMId">
+    <div class="field"><label>Recipe / Item Name</label><input type="text" id="rMName" placeholder="e.g. Chicken Puff"></div>
+    <div class="field"><label>Item Cost (₹)</label><input type="number" id="rMCost" placeholder="e.g. 25"></div>
+    <hr class="divider">
+    <div class="field">
+      <label>BOM — search ingredient, enter qty, tap Add. Repeat for each.</label>
+      <div class="srch-wrap" id="bomSrchWrap" style="margin-bottom:6px">
+        <input class="srch-inp" id="bomSrchInp" placeholder="🔍 Search ingredients…" oninput="filterBomOpts()" onfocus="showBomList()" autocomplete="off">
+        <div class="srch-list hidden" id="bomSrchList"></div>
+      </div>
+      <div id="bomSelectedBox" style="display:none;margin-bottom:6px" class="srch-selected">
+        <div id="bomSelectedName">—</div>
+        <button class="srch-clear" onclick="clearBomSel()" title="Change">✕</button>
+      </div>
+      <div class="brow" style="margin-top:0">
+        <input type="hidden" id="rMIngPick" value="">
+        <input type="number" id="rMIngQty" placeholder="qty" min="0.01" step="any" style="flex:1">
+        <button class="btn bg bs" onclick="addToBuilder()">Add</button>
+      </div>
+    </div>
+    <div id="rMBuilder"></div>
+    <button class="btn bp bb" onclick="saveRecipe()">Save Recipe</button>
+  </div>
+</div>
+
+<script>
+/* ── DATA (IndexedDB, with one-time migration from old localStorage) ── */
+const KEY='kl4_v1';
+const DB_NAME='kl4_db',STORE='kv';
+const def=()=>({ingredients:[],recipes:[],log:[],dailyRevenue:{}});
+let D=def();
+let undoStack=[];
+const UNDO_MAX=10;
+let _db=null;
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    if(!window.indexedDB){reject(new Error('no idb'));return;}
+    const req=indexedDB.open(DB_NAME,1);
+    req.onupgradeneeded=()=>{req.result.createObjectStore(STORE);};
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+function idbGet(db,key){
+  return new Promise((resolve,reject)=>{
+    const rq=db.transaction(STORE,'readonly').objectStore(STORE).get(key);
+    rq.onsuccess=()=>resolve(rq.result);
+    rq.onerror=()=>reject(rq.error);
+  });
+}
+function idbSet(db,key,val){
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE,'readwrite');
+    tx.objectStore(STORE).put(val,key);
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+async function load(){
+  let data;
+  try{
+    _db=await openDB();
+    data=await idbGet(_db,KEY);
+    if(!data){
+      // First run on this browser: pull over any old localStorage data once.
+      try{
+        const legacy=localStorage.getItem(KEY);
+        if(legacy){data=JSON.parse(legacy);await idbSet(_db,KEY,data);}
+      }catch(e){}
+    }
+  }catch(e){
+    // IndexedDB unavailable (old browser / restricted private mode) — fall back gracefully.
+    console.warn('IndexedDB unavailable, using localStorage fallback:',e);
+    try{const r=localStorage.getItem(KEY);data=r?JSON.parse(r):null;}catch(e2){data=null;}
+  }
+  data=data||def();
+  if(!data.dailyRevenue){
+    data.dailyRevenue={};
+    // Sweep any older per-date revenue values (xnRev_<date>) from localStorage into D once.
+    try{
+      for(let k in localStorage){
+        if(k.indexOf('xnRev_')===0){
+          const d=k.slice(6);
+          const v=parseFloat(localStorage.getItem(k));
+          if(!isNaN(v))data.dailyRevenue[d]=v;
+        }
+      }
+    }catch(e){}
+  }
+  return data;
+}
+function save(){
+  if(_db){
+    idbSet(_db,KEY,D).catch(e=>{
+      console.error('Save failed:',e);
+      alert('⚠ Could not save changes. Your last action may not persist — please retry or export a backup.');
+    });
+  }else{
+    try{localStorage.setItem(KEY,JSON.stringify(D));}
+    catch(e){alert('⚠ Storage full or unavailable — changes may not be saved.');}
+  }
+}
+
+/* ── UTILS ── */
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const gi=id=>D.ingredients.find(i=>i.id===id);
+const gr=id=>D.recipes.find(r=>r.id===id);
+const fmt=n=>{n=Number(n);return isNaN(n)?'0':(Math.round(n*1000)/1000).toString();};
+const fmtRs=n=>'₹'+Math.round(Number(n)||0);
+const r3=n=>Math.round(Number(n)*1000)/1000;
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const todayStr=()=>new Date().toDateString();
+const fmtDate=d=>new Date(d).toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric',year:'2-digit'});
+const fmtTime=iso=>new Date(iso).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+const todayLogs=t=>D.log.filter(l=>new Date(l.time).toDateString()===todayStr()&&(!t||l.type===t));
+
+/* ── XnPos revenue (per day) ── */
+/* ── Daily revenue (now stored inside D, so backup/restore & undo cover it) ── */
+function getXnRev(dateStr){
+  dateStr=dateStr||todayStr();
+  if(!D.dailyRevenue)D.dailyRevenue={};
+  return D.dailyRevenue[dateStr]||0;
+}
+function saveXnRev(){
+  if(!D.dailyRevenue)D.dailyRevenue={};
+  const v=parseFloat(document.getElementById('xnRevInput').value)||0;
+  D.dailyRevenue[todayStr()]=v;
+  save();
+  renderDash();
+}
+
+/* ── EXPORT ── */
+function dlCSV(name,csv){
+  const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');
+  a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);
+}
+// Proper CSV field quoting — prevents commas/quotes in names from corrupting columns.
+function csvField(v){
+  const s=(v===null||v===undefined)?'':String(v);
+  return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function csvRow(arr){return arr.map(csvField).join(',')+'\n';}
+
+/* ── FULL JSON BACKUP / RESTORE ── */
+function doBackup(){
+  const payload={app:'kitchen-ledger',version:1,exportedAt:new Date().toISOString(),data:D};
+  const b=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');
+  const ds=new Date().toISOString().slice(0,10);
+  a.href=u;a.download=`KitchenLedger_Backup_${ds}.json`;a.click();URL.revokeObjectURL(u);
+  document.getElementById('backupMsg').innerHTML='<div class="abox ab-ok" style="margin-top:8px">✓ Backup file downloaded. Now send it to yourself on WhatsApp or save it in Drive.</div>';
+}
+function doRestore(file){
+  const msg=document.getElementById('backupMsg');
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    let payload;
+    try{payload=JSON.parse(reader.result);}
+    catch(e){msg.innerHTML='<div class="abox ab-w" style="margin-top:8px">⚠ This file isn\'t a valid backup.</div>';return;}
+    const incoming=payload&&payload.data?payload.data:payload;
+    if(!incoming||!Array.isArray(incoming.ingredients)||!Array.isArray(incoming.recipes)){
+      msg.innerHTML='<div class="abox ab-w" style="margin-top:8px">⚠ This file isn\'t a valid Kitchen Ledger backup.</div>';return;
+    }
+    if(!confirm('This will REPLACE everything currently in the app with this backup. Continue?'))return;
+    saveUndo();
+    D=incoming;
+    if(!D.dailyRevenue)D.dailyRevenue={};
+    save();
+    reRenderActive();
+    msg.innerHTML='<div class="abox ab-ok" style="margin-top:8px">✓ Restored successfully.</div>';
+    document.getElementById('restoreFile').value='';
+  };
+  reader.readAsText(file);
+}
+function exportSales(){
+  const d=new Date();
+  const ds=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  const logs=todayLogs('sale');
+  let csv=`Qmin | Kitchen Ledger — Daily Sales Report\nDate: ${ds}\nStore Manager: Manik\n\n`;
+  csv+=csvRow(['Time','Item','Qty','Cost Price (Rs)','Total Cost (Rs)']);
+  let tc=0;
+  logs.forEach(l=>{
+    const r=gr(l.recipeId)||{};
+    csv+=csvRow([fmtTime(l.time),l.recipeLabel||'',l.qty,r.costPrice||'',l.cost||'']);
+    tc+=l.cost||0;
+  });
+  const xn=getXnRev();
+  csv+='\n'+csvRow(['','TOTAL COST','',Math.round(tc)]);
+  csv+=csvRow(['','TODAY REVENUE','',xn]);
+  csv+=csvRow(['','GROSS MARGIN','',Math.round(xn-tc)]);
+  const staff=[...todayLogs('staff'),...todayLogs('waste')];
+  if(staff.length){
+    csv+=`\n--- STAFF & WASTAGE ---\n`;
+    staff.forEach(l=>csv+=csvRow([fmtTime(l.time),l.label]));
+  }
+  dlCSV(`Sales_${ds.replace(/ /g,'-')}.csv`,csv);
+}
+function exportStock(){
+  const d=new Date();
+  const ds=d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  const ts=d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  let csv=`Qmin | Kitchen Ledger — Inventory Snapshot\nDate: ${ds}  Time: ${ts}\nStore Manager: Manik\n\n`;
+  csv+=csvRow(['Item','Category','Unit','Current Stock','Low Alert','Status']);
+  [...D.ingredients].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i=>{
+    const low=i.low!=null&&Number(i.qty)<=Number(i.low);
+    csv+=csvRow([i.name,i.category==='cold'?'Cold':'Dry',i.unit||'',i.qty,i.low!=null?i.low:'',low?'LOW STOCK':'OK']);
+  });
+  csv+=`\nTotal SKUs: ${D.ingredients.length}\n`;
+  csv+=`Low Stock Items: ${D.ingredients.filter(i=>i.low!=null&&Number(i.qty)<=Number(i.low)).length}\n`;
+  dlCSV(`Stock_${ds.replace(/ /g,'-')}.csv`,csv);
+}
+
+/* ── UNDO (10-level stack) ── */
+function saveUndo(){
+  undoStack.push(JSON.parse(JSON.stringify(D)));
+  if(undoStack.length>UNDO_MAX)undoStack.shift();
+  const btn=document.getElementById('undoBtn');
+  btn.style.display='inline-flex';
+  btn.textContent='↩ Undo ('+undoStack.length+')';
+}
+function doUndo(){
+  if(!undoStack.length){alert('Nothing to undo.');return;}
+  if(!confirm('Undo last action?'))return;
+  D=undoStack.pop();save();
+  const btn=document.getElementById('undoBtn');
+  if(undoStack.length){btn.textContent='↩ Undo ('+undoStack.length+')';}
+  else{btn.style.display='none';}
+  reRenderActive();
+}
+function reRenderActive(){
+  renderDash();
+  const id=document.querySelector('.panel.active')?.id?.replace('t-','');
+  if(id)({dash:renderDash,stock:renderStock,recipes:renderRecipes,sell:renderSell,staff:renderStaff,inward:renderInward})[id]?.();
+}
+
+/* ── DELETE LOG ── */
+function deleteLog(id){
+  if(!confirm('Delete this entry?\nStock quantities will be reversed automatically.'))return;
+  saveUndo();
+  const l=D.log.find(x=>x.id===id);
+  if(l&&l.diffs)l.diffs.forEach(d=>{const i=gi(d.ingId);if(i)i.qty=r3(i.qty-d.delta);});
+  D.log=D.log.filter(x=>x.id!==id);
+  save();reRenderActive();
+}
+
+/* ── TABS ── */
+function tab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('t-'+name).classList.add('active');
+  document.getElementById('tb-'+name).classList.add('active');
+  ({dash:renderDash,stock:renderStock,recipes:renderRecipes,sell:renderSell,staff:renderStaff,inward:renderInward})[name]?.();
+}
+const openMod=id=>document.getElementById(id).classList.add('active');
+const closeMod=id=>document.getElementById(id).classList.remove('active');
+
+/* ── STOCK ── */
+let stockCat='all'; // 'all' | 'cold' | 'dry'
+function setCat(cat){
+  stockCat=cat;
+  ['all','cold','dry'].forEach(c=>{
+    document.getElementById('cat-'+c).classList.toggle('active',c===cat);
+  });
+  renderStock();
+}
+function openIM(id){
+  document.getElementById('iMId').value=id||'';
+  if(id){
+    const i=gi(id);
+    document.getElementById('iMTitle').textContent='Edit Stock Item';
+    document.getElementById('iMName').value=i.name;
+    document.getElementById('iMCat').value=i.category||'dry';
+    document.getElementById('iMUnit').value=i.unit||'';
+    document.getElementById('iMQty').value=i.qty;
+    document.getElementById('iMLow').value=i.low??'';
+  } else {
+    document.getElementById('iMTitle').textContent='Add Stock Item';
+    ['iMName','iMUnit','iMQty','iMLow'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('iMCat').value='dry';
+  }
+  openMod('iMod');
+}
+function saveIng(){
+  const id=document.getElementById('iMId').value;
+  const name=document.getElementById('iMName').value.trim();
+  const category=document.getElementById('iMCat').value||'dry';
+  const unit=document.getElementById('iMUnit').value.trim();
+  const qty=parseFloat(document.getElementById('iMQty').value)||0;
+  const lv=document.getElementById('iMLow').value;
+  const low=lv===''?null:parseFloat(lv);
+  if(!name){alert('Item needs a name.');return;}
+  const dup=D.ingredients.find(i=>i.name.toLowerCase()===name.toLowerCase()&&i.id!==id);
+  if(dup&&!confirm(`"${dup.name}" already exists. Save anyway as a duplicate?`))return;
+  if(id){const i=gi(id);i.name=name;i.category=category;i.unit=unit;i.qty=qty;i.low=low;}
+  else D.ingredients.push({id:uid(),name,category,unit,qty,low});
+  save();renderStock();closeMod('iMod');
+}
+function delIng(id){
+  if(!confirm('Delete this item?'))return;
+  D.ingredients=D.ingredients.filter(i=>i.id!==id);save();renderStock();
+}
+function ingCard(i){
+  const low=i.low!=null&&Number(i.qty)<=Number(i.low);
+  return`<div class="card"><div class="sk-row"><div>
+    <div class="sk-name">${esc(i.name)}</div>
+    <div class="sk-meta">Unit: ${esc(i.unit||'—')}${i.low!=null?' · Alert below '+i.low:''}</div>
+    ${low?'<span class="tag tag-low">Low Stock</span>':''}
+  </div><div class="sk-qty" style="${low?'color:var(--rs)':''}">${fmt(i.qty)}</div></div>
+  <div class="sk-acts">
+    <button class="btn bg bs" onclick="openIM('${i.id}')">Edit</button>
+    <button class="btn bd" onclick="delIng('${i.id}')">Delete</button>
+  </div></div>`;
+}
+function renderStock(){
+  const el=document.getElementById('stockList');
+  if(!D.ingredients.length){el.innerHTML='<div class="empty">No items yet. Add ingredients used in your kitchen.</div>';return;}
+  const q=(document.getElementById('stockSearch')?.value||'').trim().toLowerCase();
+  let filtered=q?D.ingredients.filter(i=>i.name.toLowerCase().includes(q)):D.ingredients;
+  // Apply category filter
+  if(stockCat==='cold')filtered=filtered.filter(i=>i.category==='cold');
+  else if(stockCat==='dry')filtered=filtered.filter(i=>i.category!=='cold');
+  if(!filtered.length){el.innerHTML=`<div class="empty">No items match this filter${q?' for "'+esc(q)+'"':''}.</div>`;return;}
+  const cold=filtered.filter(i=>i.category==='cold').sort((a,b)=>a.name.localeCompare(b.name));
+  const dry=filtered.filter(i=>i.category!=='cold').sort((a,b)=>a.name.localeCompare(b.name));
+  let html='';
+  if(stockCat==='cold'||stockCat==='all'){
+    if(cold.length)html+=`<div class="rh" style="margin-top:2px"><h2>❄️ Cold Storage (${cold.length})</h2></div>${cold.map(ingCard).join('')}`;
+  }
+  if(stockCat==='dry'||stockCat==='all'){
+    if(dry.length)html+=`<div class="rh"${stockCat==='all'?' ':'style="margin-top:2px"'}><h2>📦 Dry Storage (${dry.length})</h2></div>${dry.map(ingCard).join('')}`;
+  }
+  el.innerHTML=html;
+}
+
+/* ── RECIPES ── */
+let builder=[];
+// BOM ingredient search state
+let bomSelId='';
+
+function sortedIngredients(){
+  return [...D.ingredients].sort((a,b)=>a.name.localeCompare(b.name));
+}
+function sortedRecipes(){
+  return [...D.recipes].sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+/* BOM searchable picker */
+function showBomList(){
+  filterBomOpts();
+  document.getElementById('bomSrchList').classList.remove('hidden');
+}
+function filterBomOpts(){
+  const q=(document.getElementById('bomSrchInp').value||'').trim().toLowerCase();
+  const list=document.getElementById('bomSrchList');
+  const ings=sortedIngredients().filter(i=>!q||i.name.toLowerCase().includes(q));
+  if(!ings.length){list.innerHTML='<div class="srch-opt" style="color:var(--soft)">No ingredients found.</div>';list.classList.remove('hidden');return;}
+  list.innerHTML=ings.map(i=>`<div class="srch-opt" onclick="selectBomIng('${i.id}','${esc(i.name)}','${esc(i.unit||'')}')">${esc(i.name)}<div class="opt-sub">${esc(i.unit||'no unit')} · ${fmt(i.qty)} in stock</div></div>`).join('');
+  list.classList.remove('hidden');
+}
+function selectBomIng(id,name,unit){
+  bomSelId=id;
+  document.getElementById('rMIngPick').value=id;
+  document.getElementById('bomSrchInp').value='';
+  document.getElementById('bomSrchList').classList.add('hidden');
+  document.getElementById('bomSrchWrap').style.display='none';
+  const box=document.getElementById('bomSelectedBox');
+  document.getElementById('bomSelectedName').textContent=name+(unit?' ('+unit+')':'');
+  box.style.display='flex';
+  document.getElementById('rMIngQty').focus();
+}
+function clearBomSel(){
+  bomSelId='';
+  document.getElementById('rMIngPick').value='';
+  document.getElementById('bomSrchInp').value='';
+  document.getElementById('bomSrchWrap').style.display='';
+  document.getElementById('bomSelectedBox').style.display='none';
+}
+function resetBomPicker(){
+  clearBomSel();
+  document.getElementById('bomSrchList').classList.add('hidden');
+}
+
+function openRM(id){
+  resetBomPicker();
+  document.getElementById('rMId').value=id||'';
+  if(id){
+    const r=gr(id);
+    document.getElementById('rMTitle').textContent='Edit Recipe';
+    document.getElementById('rMName').value=r.name;
+    document.getElementById('rMCost').value=r.costPrice||'';
+    builder=r.items.map(x=>({...x}));
+  } else {
+    document.getElementById('rMTitle').textContent='New Recipe';
+    ['rMName','rMCost'].forEach(x=>document.getElementById(x).value='');
+    builder=[];
+  }
+  document.getElementById('rMIngQty').value='';
+  renderBuilder();openMod('rMod');
+}
+function addToBuilder(){
+  if(!D.ingredients.length){alert('Add stock items first on the Stock tab.');return;}
+  const ingId=document.getElementById('rMIngPick').value||bomSelId;
+  const qty=parseFloat(document.getElementById('rMIngQty').value);
+  if(!ingId){alert('Search and select an ingredient first.');return;}
+  if(!qty||qty<=0){alert('Enter a valid quantity.');return;}
+  const ex=builder.find(b=>b.ingId===ingId);
+  if(ex)ex.qty=qty;else builder.push({ingId,qty});
+  document.getElementById('rMIngQty').value='';
+  resetBomPicker();
+  renderBuilder();
+}
+function rmBuilder(ingId){builder=builder.filter(b=>b.ingId!==ingId);renderBuilder();}
+function renderBuilder(){
+  const el=document.getElementById('rMBuilder');
+  if(!builder.length){el.innerHTML='<div class="empty" style="padding:12px;margin-bottom:8px">No ingredients yet. Search one above and tap Add.</div>';return;}
+  el.innerHTML=builder.map(b=>{
+    const i=gi(b.ingId);
+    return`<div class="bi"><span><b>${esc(i?i.name:'(deleted)')}</b> — ${fmt(b.qty)} ${esc(i?i.unit||'':'')}</span><button onclick="rmBuilder('${b.ingId}')">✕ remove</button></div>`;
+  }).join('');
+}
+function saveRecipe(){
+  const id=document.getElementById('rMId').value;
+  const name=document.getElementById('rMName').value.trim();
+  const costPrice=parseFloat(document.getElementById('rMCost').value)||0;
+  if(!name){alert('Give this recipe a name.');return;}
+  if(!builder.length){alert('Add at least one ingredient.');return;}
+  if(id){const r=gr(id);r.name=name;r.costPrice=costPrice;r.items=builder.map(x=>({...x}));}
+  else D.recipes.push({id:uid(),name,costPrice,items:builder.map(x=>({...x}))});
+  save();renderRecipes();closeMod('rMod');
+}
+function delRecipe(id){
+  if(!confirm('Delete this recipe?'))return;
+  D.recipes=D.recipes.filter(r=>r.id!==id);save();renderRecipes();
+}
+function renderRecipes(){
+  const el=document.getElementById('recipeList');
+  if(!D.recipes.length){el.innerHTML='<div class="empty">No recipes yet. Build a recipe to define BOM + set cost & sell price.</div>';return;}
+  el.innerHTML=sortedRecipes().map(r=>`
+  <details class="card rcd">
+    <summary><div>
+      <div class="rt">${esc(r.name)}</div>
+      <div class="rc">${r.items.length} ingredient${r.items.length===1?'':'s'}${r.costPrice?'  ·  Cost ₹'+r.costPrice:''}</div>
+    </div><span style="color:var(--ol);font-size:13px">▾</span></summary>
+    ${r.items.map(it=>{const i=gi(it.ingId);return`<div class="il"><span>${esc(i?i.name:'(deleted)')}</span><span>${fmt(it.qty)} ${esc(i?i.unit||'':'')}</span></div>`;}).join('')}
+    ${r.costPrice?`<div style="display:flex;gap:8px;margin-top:8px">
+      <div class="pl-mini" style="flex:1"><div class="pmn" style="font-size:14px;color:var(--rs)">₹${r.costPrice}</div><div class="pml">Cost/unit</div></div>
+    </div>`:''}
+    <div class="sk-acts">
+      <button class="btn bg bs" onclick="event.preventDefault();openRM('${r.id}')">Edit</button>
+      <button class="btn bd" onclick="event.preventDefault();delRecipe('${r.id}')">Delete</button>
+    </div>
+  </details>`).join('');
+}
+
+/* ── SELL ── */
+let sellSelId=''; // currently selected recipe id for sell
+
+function showSellList(){
+  filterSellOpts();
+  document.getElementById('sellSrchList').classList.remove('hidden');
+}
+function filterSellOpts(){
+  const q=(document.getElementById('sellSrchInp').value||'').trim().toLowerCase();
+  const list=document.getElementById('sellSrchList');
+  const recipes=sortedRecipes().filter(r=>!q||r.name.toLowerCase().includes(q));
+  if(!recipes.length){
+    list.innerHTML='<div class="srch-opt" style="color:var(--soft)">'+(D.recipes.length?'No match — try a different search.':'No recipes yet. Create one on the Menu tab.')+'</div>';
+    list.classList.remove('hidden');return;
+  }
+  list.innerHTML=recipes.map(r=>`<div class="srch-opt" onclick="selectSellRec('${r.id}','${esc(r.name)}',${r.costPrice||0})">${esc(r.name)}<div class="opt-sub">${r.costPrice?'Cost ₹'+r.costPrice:'No cost set'} · ${r.items.length} ingredient${r.items.length===1?'':'s'}</div></div>`).join('');
+  list.classList.remove('hidden');
+}
+function selectSellRec(id,name,cost){
+  sellSelId=id;
+  document.getElementById('sellSrchInp').value='';
+  document.getElementById('sellSrchList').classList.add('hidden');
+  document.getElementById('sellSrchWrap').style.display='none';
+  const box=document.getElementById('sellSelectedBox');
+  document.getElementById('sellSelectedName').innerHTML=name+(cost?'<span> · Cost ₹'+cost+'</span>':'');
+  box.style.display='flex';
+  renderSellPrev();
+}
+function clearSellSel(){
+  sellSelId='';
+  document.getElementById('sellSrchInp').value='';
+  document.getElementById('sellSrchWrap').style.display='';
+  document.getElementById('sellSelectedBox').style.display='none';
+  document.getElementById('sellPrev').innerHTML='';
+  document.getElementById('sellMsg').innerHTML='';
+}
+function renderSell(){
+  const now=new Date();
+  document.getElementById('sellDateLabel').textContent='📅 '+now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short',year:'numeric'});
+  // If previously selected recipe still exists, keep it shown; otherwise clear
+  if(sellSelId&&!D.recipes.find(r=>r.id===sellSelId))clearSellSel();
+  if(!sellSelId){
+    document.getElementById('sellSrchWrap').style.display='';
+    document.getElementById('sellSelectedBox').style.display='none';
+  }
+  renderSellPrev();renderSellLog();
+}
+function renderSellPrev(){
+  const pv=document.getElementById('sellPrev');
+  const msg=document.getElementById('sellMsg');
+  msg.innerHTML='';pv.innerHTML='';
+  if(!sellSelId||!D.recipes.length)return;
+  const r=gr(sellSelId);if(!r)return;
+  const qty=parseFloat(document.getElementById('sellQty').value)||0;
+  if(qty<=0)return;
+  let bad=false;
+  pv.innerHTML=r.items.map(it=>{
+    const i=gi(it.ingId);const need=r3(it.qty*qty);const have=i?Number(i.qty):0;const short=need>have;if(short)bad=true;
+    return`<div class="ul${short?' bad':''}"><span>${esc(i?i.name:'(deleted)')}</span><span>${fmt(need)} ${esc(i?i.unit||'':'')}${short?' (have '+fmt(have)+')':''}</span></div>`;
+  }).join('');
+  if(r.costPrice){
+    const cost=r3(r.costPrice*qty);
+    pv.innerHTML+=`<div style="margin-top:8px"><div class="pl-mini"><div class="pmn" style="font-size:14px;color:var(--rs)">${fmtRs(cost)}</div><div class="pml">Total Cost</div></div></div>`;
+  }
+  msg.innerHTML=bad?'<div class="abox ab-w">⚠ Insufficient stock — cannot deduct this qty.</div>':'<div class="abox ab-ok">✓ Stock OK — ready to deduct.</div>';
+}
+// Returns null if sufficient stock, or the name of the first insufficient ingredient.
+function checkStock(items,qty){
+  for(const it of items){
+    const i=gi(it.ingId);
+    const have=i?Number(i.qty):0;
+    if(r3(it.qty*qty)>have)return i?i.name:'(deleted ingredient)';
+  }
+  return null;
+}
+function doSell(){
+  if(!sellSelId||!D.recipes.length){alert('Search and select a menu item first.');return;}
+  const r=gr(sellSelId);if(!r){alert('Recipe not found.');return;}
+  const qty=parseFloat(document.getElementById('sellQty').value)||0;
+  if(qty<=0){alert('Enter a valid quantity.');return;}
+  const short=checkStock(r.items,qty);
+  if(short){document.getElementById('sellMsg').innerHTML=`<div class="abox ab-w">⚠ Not enough "${esc(short)}" in stock. Sale blocked.</div>`;return;}
+  saveUndo();
+  const diffs=[];
+  r.items.forEach(it=>{const i=gi(it.ingId);if(i){const delta=r3(-(it.qty*qty));i.qty=r3(i.qty+delta);diffs.push({ingId:it.ingId,delta});}});
+  const cost=r3((r.costPrice||0)*qty);
+  D.log.unshift({id:uid(),type:'sale',label:r.name+' ×'+qty,recipeId:r.id,recipeLabel:r.name,qty,cost,diffs,time:new Date().toISOString()});
+  D.log=D.log.slice(0,200);save();renderSell();renderStock();
+  document.getElementById('sellMsg').innerHTML=`<div class="abox ab-ok">✓ Logged ${qty}× ${esc(r.name)}${cost?' | Cost: '+fmtRs(cost):''}.</div>`;
+}
+function renderSellLog(){
+  const el=document.getElementById('sellLog');
+  const logs=todayLogs('sale');
+  document.getElementById('todaySaleCount').textContent=logs.length?logs.length+' entries':'';
+  el.innerHTML=logs.length?logs.map(logItem).join(''):'<div class="empty">No sales today yet. Fresh start!</div>';
+}
+
+/* ── STAFF & WASTE ── */
+function fillIngSel2(selId){
+  const sel=document.getElementById(selId);if(!sel)return;
+  sel.innerHTML=D.ingredients.length
+    ?[...D.ingredients].sort((a,b)=>a.name.localeCompare(b.name)).map(i=>`<option value="${i.id}">${esc(i.name)} (${fmt(i.qty)} ${esc(i.unit||'')})</option>`).join('')
+    :'<option value="">— add stock items first —</option>';
+}
+function renderStaff(){
+  fillIngSel2('conIng');
+  const logs=[...todayLogs('staff'),...todayLogs('waste')].sort((a,b)=>new Date(b.time)-new Date(a.time));
+  document.getElementById('staffLog').innerHTML=logs.length?logs.map(logItem).join(''):'<div class="empty">No entries today.</div>';
+  document.getElementById('conMsg').innerHTML='';
+}
+function doConsume(){
+  const type=document.getElementById('conType').value;
+  const ingId=document.getElementById('conIng').value;
+  const qty=parseFloat(document.getElementById('conQty').value)||0;
+  const note=document.getElementById('conNote').value.trim();
+  if(!ingId){alert('Select an ingredient.');return;}
+  if(qty<=0){alert('Enter a valid quantity.');return;}
+  const i=gi(ingId);if(!i){alert('Not found.');return;}
+  if(qty>Number(i.qty)){document.getElementById('conMsg').innerHTML=`<div class="abox ab-w" style="margin-top:8px">⚠ Only ${fmt(i.qty)} ${esc(i.unit||'')} of "${esc(i.name)}" in stock.</div>`;return;}
+  saveUndo();
+  const delta=-qty;i.qty=r3(i.qty+delta);
+  const label=(type==='staff'?'Staff: ':'Dump: ')+i.name+' −'+fmt(qty)+' '+i.unit+(note?' ('+note+')':'');
+  D.log.unshift({id:uid(),type,label,qty,diffs:[{ingId,delta}],time:new Date().toISOString()});
+  D.log=D.log.slice(0,200);save();
+  document.getElementById('conQty').value='';document.getElementById('conNote').value='';
+  document.getElementById('conMsg').innerHTML='<div class="abox ab-ok" style="margin-top:8px">✓ Logged & deducted.</div>';
+  renderStaff();renderStock();
+}
+
+/* ── INWARD / OUTWARD ── */
+function renderInward(){
+  fillIngSel2('mvIng');
+  const logs=[...todayLogs('inward'),...todayLogs('outward')].sort((a,b)=>new Date(b.time)-new Date(a.time));
+  document.getElementById('mvLog').innerHTML=logs.length?logs.map(logItem).join(''):'<div class="empty">No movements today.</div>';
+  document.getElementById('mvMsg').innerHTML='';
+}
+function doMove(){
+  const type=document.getElementById('mvType').value;
+  const ingId=document.getElementById('mvIng').value;
+  const qty=parseFloat(document.getElementById('mvQty').value)||0;
+  const supplier=document.getElementById('mvSupplier').value;
+  const note=document.getElementById('mvNote').value.trim();
+  if(!ingId){alert('Select an ingredient.');return;}
+  if(qty<=0){alert('Enter a valid quantity.');return;}
+  const i=gi(ingId);if(!i){alert('Not found.');return;}
+  if(type==='outward'&&qty>Number(i.qty)){document.getElementById('mvMsg').innerHTML=`<div class="abox ab-w" style="margin-top:8px">⚠ Only ${fmt(i.qty)} ${esc(i.unit||'')} of "${esc(i.name)}" in stock.</div>`;return;}
+  saveUndo();
+  const mvDelta=type==='inward'?qty:-qty;
+  i.qty=r3(i.qty+mvDelta);
+  const noteStr=[supplier,note].filter(Boolean).join(' — ');
+  const label=(type==='inward'?'↑ In: ':'↓ Out: ')+i.name+' '+fmt(qty)+' '+i.unit+(noteStr?' — '+noteStr:'');
+  D.log.unshift({id:uid(),type,label,qty,supplier,diffs:[{ingId,delta:mvDelta}],time:new Date().toISOString()});
+  D.log=D.log.slice(0,200);save();
+  document.getElementById('mvQty').value='';document.getElementById('mvNote').value='';
+  document.getElementById('mvMsg').innerHTML=`<div class="abox ab-ok" style="margin-top:8px">✓ ${type==='inward'?'Added':'Removed'} ${fmt(qty)} ${esc(i.unit||'')} of ${esc(i.name)} via ${esc(supplier)}.</div>`;
+  renderInward();renderStock();
+}
+
+/* ── DASHBOARD ── */
+function renderDash(){
+  const now=new Date();
+  document.getElementById('headerDate').textContent=now.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const low=D.ingredients.filter(i=>i.low!=null&&Number(i.qty)<=Number(i.low));
+  const saleLogs=todayLogs('sale');
+  const sw=todayLogs('staff').length+todayLogs('waste').length;
+  document.getElementById('dStats').innerHTML=`
+    <div class="stat g"><div class="sn">${D.ingredients.length}</div><div class="sl">Total SKUs</div></div>
+    <div class="stat ${low.length?'w':'g'}"><div class="sn">${low.length}</div><div class="sl">Low Stock</div></div>
+    <div class="stat g"><div class="sn">${saleLogs.length}</div><div class="sl">Sales Today</div></div>
+    <div class="stat ${sw?'b':'g'}"><div class="sn">${sw}</div><div class="sl">Staff/Waste</div></div>`;
+
+  // P&L
+  const xnRev=getXnRev();
+  const totalCost=r3(saleLogs.reduce((s,l)=>s+(l.cost||0),0));
+  const pl=r3(xnRev-totalCost);
+  document.getElementById('xnRevInput').value=xnRev||'';
+  document.getElementById('plRev').textContent=fmtRs(xnRev);
+  document.getElementById('plCost').textContent=fmtRs(totalCost);
+  document.getElementById('plNet').textContent=(pl>=0?'+':'')+fmtRs(pl);
+  document.getElementById('plNet').style.color=pl>=0?'var(--old)':'var(--rs)';
+  document.getElementById('plNote').textContent=totalCost>0
+    ?`Cost calculated from ${saleLogs.filter(l=>l.cost>0).length} logged sale(s). Enter today's revenue above for full P&L.`
+    :'Set item cost per recipe in Menu tab, then log sales here for accurate cost tracking.';
+
+  // Low stock
+  const lowEl=document.getElementById('dLow');
+  lowEl.innerHTML=low.length
+    ?low.map(i=>`<div class="card" style="padding:10px 13px"><div class="sk-row">
+      <div><div class="sk-name">${esc(i.name)}</div><div class="sk-meta">${esc(i.unit||'—')} · Alert below ${i.low}</div></div>
+      <div class="sk-qty" style="color:var(--rs)">${fmt(i.qty)}</div></div></div>`).join('')
+    :'<div class="empty">No low stock alerts — all good!</div>';
+
+  // Today activity
+  const todayAll=D.log.filter(l=>new Date(l.time).toDateString()===todayStr());
+  document.getElementById('dLog').innerHTML=todayAll.length?todayAll.map(logItem).join(''):'<div class="empty">No activity yet today.</div>';
+
+  // Past days history
+  const today=todayStr();
+  const byDate={};
+  D.log.forEach(l=>{const d=new Date(l.time).toDateString();if(d===today)return;if(!byDate[d])byDate[d]=[];byDate[d].push(l);});
+  const days=Object.entries(byDate).sort((a,b)=>new Date(b[0])-new Date(a[0]));
+  const histEl=document.getElementById('dHistory');
+  if(!days.length){histEl.innerHTML='<div class="empty">No past days yet. History appears here after midnight.</div>';return;}
+  histEl.innerHTML=days.map(([date,logs])=>{
+    const sc=logs.filter(l=>l.type==='sale');
+    const st=logs.filter(l=>l.type==='staff').length;
+    const ws=logs.filter(l=>l.type==='waste').length;
+    const iw=logs.filter(l=>l.type==='inward').length;
+    const ow=logs.filter(l=>l.type==='outward').length;
+    const dayCost=r3(sc.reduce((s,l)=>s+(l.cost||0),0));
+    const dayRev=getXnRev(date);
+    const dayMargin=r3(dayRev-dayCost);
+    return`<details class="day-card rcd">
+      <summary><div>
+        <div class="rt">${fmtDate(date)}</div>
+        <div class="day-badges">
+          ${sc.length?`<span class="dbadge" style="background:var(--olf);color:var(--old)">💸 ${sc.length} Sales</span>`:''}
+          ${st?`<span class="dbadge" style="background:var(--blf);color:var(--bl)">👤 ${st} Staff</span>`:''}
+          ${ws?`<span class="dbadge" style="background:var(--rsf);color:var(--rs)">🗑 ${ws} Waste</span>`:''}
+          ${iw?`<span class="dbadge" style="background:var(--inf);color:var(--ing)">↑${iw} In</span>`:''}
+          ${ow?`<span class="dbadge" style="background:var(--outf);color:var(--out)">↓${ow} Out</span>`:''}
+          ${dayCost?`<span class="dbadge" style="background:#EEE8DE;color:var(--soft)">Cost ${fmtRs(dayCost)}</span>`:''}
+          ${dayRev?`<span class="dbadge" style="background:var(--olf);color:var(--old)">Rev ${fmtRs(dayRev)}</span>`:''}
+          ${dayRev?`<span class="dbadge" style="background:${dayMargin>=0?'var(--olf)':'var(--rsf)'};color:${dayMargin>=0?'var(--old)':'var(--rs)'}">${dayMargin>=0?'+':''}${fmtRs(dayMargin)} margin</span>`:''}
+        </div>
+      </div><span style="color:var(--ol);font-size:13px;flex-shrink:0;margin-left:6px">▾</span></summary>
+      <div style="margin-top:6px">${logs.map(logItem).join('')}</div>
+    </details>`;
+  }).join('');
+}
+
+/* ── LOG ITEM RENDERER ── */
+const TL={sale:'Sale',staff:'Staff',waste:'Waste',inward:'Inward',outward:'Outward'};
+const TC={sale:'t-sale',staff:'t-staff',waste:'t-waste',inward:'t-inward',outward:'t-outward'};
+function logItem(l){
+  const sup=l.supplier?`<span class="sup-badge">${esc(l.supplier)}</span>`:'';
+  const sub=(l.type==='sale'&&l.cost)
+    ?`<div class="log-sub">Cost: ${fmtRs(l.cost)}</div>`
+    :'';
+  return`<div class="log-i"><div class="log-top"><span>${sup}<span class="ltype ${TC[l.type]||''}">${TL[l.type]||l.type}</span>${esc(l.label)}</span><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="lt">${fmtTime(l.time)}</span><button onclick="deleteLog('${l.id}')" style="background:none;border:none;color:var(--rs);font-size:15px;cursor:pointer;padding:0;opacity:.7">✕</button></div></div>${sub}</div>`;
+}
+
+/* ── INIT ── */
+(async()=>{
+  D=await load();
+  renderDash();
+  // Close search dropdowns when tapping outside
+  document.addEventListener('click',e=>{
+    const sellWrap=document.getElementById('sellSrchWrap');
+    const bomWrap=document.getElementById('bomSrchWrap');
+    if(sellWrap&&!sellWrap.contains(e.target)){
+      document.getElementById('sellSrchList')?.classList.add('hidden');
+    }
+    if(bomWrap&&!bomWrap.contains(e.target)){
+      document.getElementById('bomSrchList')?.classList.add('hidden');
+    }
+  });
+})();
+</script>
+</body>
+</html>
